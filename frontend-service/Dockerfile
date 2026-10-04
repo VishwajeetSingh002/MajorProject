@@ -1,13 +1,11 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
-RUN apk upgrade --no-cache libcrypto3 libssl3
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --only=production
 
 # Stage 2: Runtime
 FROM node:20-alpine
-RUN apk upgrade --no-cache libcrypto3 libssl3
 WORKDIR /app
 
 # Create non-root user
