@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:  # allows manual triggering from GitHub Actions UI
 
 jobs:
   build-and-scan:
@@ -22,7 +23,7 @@ jobs:
         with:
           image-ref: 'majorproject-user-service:latest'
           format: 'table'
-          exit-code: '0'
+          exit-code: '1'          # Fail CI if CRITICAL vulnerabilities found
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
@@ -35,7 +36,7 @@ jobs:
         with:
           image-ref: 'majorproject-frontend-service:latest'
           format: 'table'
-          exit-code: '0'
+          exit-code: '1'          # Fail CI if CRITICAL vulnerabilities found
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
