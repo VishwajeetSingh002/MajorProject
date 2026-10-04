@@ -68,8 +68,8 @@ app.get("/", async (req, res) => {
         
         <header class="flex justify-between items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
           <div>
-            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500">
-              Microservices Operations Portal
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500">
+              Microservices Cloud Portal - v2.0 GitOps Edition 🚀
             </h1>
             <p class="text-slate-400 text-sm mt-1">Kubernetes Cluster & Orchestration Environment</p>
           </div>
