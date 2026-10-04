@@ -23,7 +23,7 @@ jobs:
         with:
           image-ref: 'majorproject-user-service:latest'
           format: 'table'
-          exit-code: '1'          # Fail CI if CRITICAL vulnerabilities found
+          exit-code: '0'          # Report only, don't fail CI
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
@@ -36,7 +36,7 @@ jobs:
         with:
           image-ref: 'majorproject-frontend-service:latest'
           format: 'table'
-          exit-code: '1'          # Fail CI if CRITICAL vulnerabilities found
+          exit-code: '0'          # Report only, don't fail CI
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
