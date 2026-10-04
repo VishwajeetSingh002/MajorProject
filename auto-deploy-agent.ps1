@@ -1,46 +1,45 @@
-$repo = "VishwajeetSingh002/MajorProject"
-$apiUrl = "https://api.github.com/repos/$repo/actions/runs?per_page=1"
+$repoUrl = "https://github.com/VishwajeetSingh002/MajorProject/actions"
 
-Write-Host "🤖 Starting Local CD Agent (GitOps Mode)..." -ForegroundColor Cyan
-Write-Host "Listening for successful GitHub Actions on $repo..." -ForegroundColor Gray
+Write-Host "🤖 Starting Local CD Agent (GitOps Unlimited Mode)..." -ForegroundColor Cyan
+Write-Host "Listening for successful GitHub Actions on $repoUrl..." -ForegroundColor Gray
 
 $lastRunId = ""
 
 while ($true) {
     try {
-        # Fetch the latest GitHub Actions run
-        $response = Invoke-RestMethod -Uri $apiUrl -ErrorAction Stop
-        if ($response.workflow_runs.Count -gt 0) {
-            $latestRun = $response.workflow_runs[0]
-            
-            # Initialize tracking on first loop
+        $raw = (curl.exe -s $repoUrl) -join "`n"
+        if ($raw -match 'actions/runs/(\d+)[\s\S]*?aria-label="([^"]+)"') {
+            $latestRunId = $matches[1]
+            $statusText = $matches[2]
+
             if ($lastRunId -eq "") {
-                $lastRunId = $latestRun.id
+                $lastRunId = $latestRunId
                 Write-Host "[System Armed] Tracking latest run ID: $lastRunId" -ForegroundColor DarkGray
             }
-            
-            # Check if there is a NEW run that just completed successfully
-            if ($latestRun.id -ne $lastRunId -and $latestRun.status -eq "completed") {
-                
-                if ($latestRun.conclusion -eq "success") {
+
+            if ($latestRunId -ne $lastRunId) {
+                if ($statusText -like "*completed successfully*") {
                     Write-Host "`n🎉 SUCCESSFUL CI PIPELINE DETECTED IN CLOUD!" -ForegroundColor Green
+                    Write-Host "$statusText" -ForegroundColor Yellow
                     Write-Host "Triggering local automated deployment...`n" -ForegroundColor Yellow
-                    
-                    # Execute the deployment script
+
+                    # Pull latest code and trigger deployment
+                    git pull --quiet
                     .\deploy.ps1
-                } else {
-                    Write-Host "`n❌ CI PIPELINE FAILED IN CLOUD!" -ForegroundColor Red
-                    Write-Host "Deployment blocked to protect the cluster.`n" -ForegroundColor Red
+
+                    $lastRunId = $latestRunId
+                    Write-Host "`n🤖 Resuming listening mode..." -ForegroundColor Cyan
+                } elseif ($statusText -like "*failed*" -or $statusText -like "*cancelled*") {
+                    Write-Host "`n❌ CI PIPELINE FAILED OR CANCELLED IN CLOUD!" -ForegroundColor Red
+                    Write-Host "$statusText" -ForegroundColor Red
+                    $lastRunId = $latestRunId
+                    Write-Host "`n🤖 Resuming listening mode..." -ForegroundColor Cyan
                 }
-                
-                $lastRunId = $latestRun.id
-                Write-Host "`n🤖 Resuming listening mode..." -ForegroundColor Cyan
             }
         }
     } catch {
-        # Ignore network blips or API rate limits silently
+        # Silently continue on momentary network glitches
     }
-    
-    # Check GitHub every 10 seconds
-    Start-Sleep -Seconds 10
+
+    Start-Sleep -Seconds 5
 }
