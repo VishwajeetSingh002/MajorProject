@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: microservices-dev
+data:
+  USER_SERVICE_URL: "http://user-service:8000"

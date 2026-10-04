@@ -1,0 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-scan:
+    name: Build & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build user-service Docker image
+        run: docker build -t majorproject-user-service:latest ./user-service
+
+      - name: Run Trivy vulnerability scanner on user-service
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'majorproject-user-service:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Build frontend-service Docker image
+        run: docker build -t majorproject-frontend-service:latest ./frontend-service
+
+      - name: Run Trivy vulnerability scanner on frontend-service
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'majorproject-frontend-service:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  lint-and-validate:
+    name: Lint & Validate Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Terraform Validation
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: ./terraform
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./terraform
+
+      # Kubernetes Validation
+      - name: Install kubeval
+        run: |
+          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin
+          
+      - name: Validate Kubernetes Manifests
+        run: kubeval --strict k8s/*.yaml

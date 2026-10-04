@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - microservices-net
+
+  frontend-service:
+    build: ./frontend-service
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - USER_SERVICE_URL=http://user-service:8000
+    depends_on:
+      - user-service
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: bridge
