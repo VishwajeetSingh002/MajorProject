@@ -11,11 +11,10 @@ WORKDIR /app
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Copy production dependencies
-COPY --from=builder /app/node_modules ./node_modules
-COPY . .
+# Copy production dependencies and app code with proper ownership
+COPY --chown=appuser:appgroup --from=builder /app/node_modules ./node_modules
+COPY --chown=appuser:appgroup . .
 
-RUN chown -R appuser:appgroup /app
 USER appuser
 
 EXPOSE 3000
